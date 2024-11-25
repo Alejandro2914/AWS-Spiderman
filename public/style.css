@@ -1,17 +1,57 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 50px;
-}
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4CAF50;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(45deg, #000, #990000);
     color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 12px;
+    text-align: center;
 }
+
+header {
+    padding: 20px;
+    background-color: #990000;
+    border-bottom: 2px solid #e5e5e5;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #ffe100;
+}
+
+p {
+    font-size: 1.2rem;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    background: #000;
+    color: #ffe100;
+    border: 2px solid #ffe100;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.3s ease-in-out, background-color 0.3s;
+}
+
 button:hover {
-    background-color: #45a049;
+    transform: scale(1.1);
+    background-color: #ff0000;
+}
+
+footer {
+    margin-top: 20px;
+    padding: 10px;
+    background: #000;
+    color: #ffe100;
+    font-style: italic;
+}
+
+/* Spider-Man Web Animation */
+.content {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
