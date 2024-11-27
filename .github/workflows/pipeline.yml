@@ -20,34 +20,8 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i "C:\Users\AlEgA\Downloads\spidey.pem" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i "C:/Users/AlEgA/.ssh" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
           # Verificar si el directorio de la aplicación existe, si no, clonar el repositorio
           if [ ! -d "/home/ec2-user/mi-aplicacion" ]; then
             echo "Clonando repositorio..."
-            git clone git@github.com:Alejandro2914/AWS-Spiderman.git /home/ec2-user/mi-aplicacion
-          fi
-
-          # Cambiar al directorio de la aplicación
-          cd /home/ec2-user/mi-aplicacion
-
-          # Obtener los últimos cambios
-          git pull origin main
-
-          # Instalar dependencias si no están instaladas
-          if [ ! -f "package.json" ]; then
-            echo "package.json no encontrado. Abortando..."
-            exit 1
-          fi
-
-          npm install
-
-          # Instalar PM2 si no está instalado
-          if ! command -v pm2 &> /dev/null; then
-            echo "PM2 no encontrado, instalando..."
-            npm install -g pm2
-          fi
-
-          # Ejecutar la aplicación
-          pm2 restart all || pm2 start npm --name "mi-aplicacion" -- start
-        EOF
-
+            git clone 
