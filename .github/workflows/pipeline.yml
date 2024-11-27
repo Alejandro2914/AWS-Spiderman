@@ -16,42 +16,42 @@ jobs:
     - name: Set up SSH key for EC2
       uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Usamos el secreto con la clave privada cargada
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # We use the secret with the loaded private key
 
     - name: Deploy to EC2
       run: |
-        # Crear el directorio .ssh si no existe
+        # Create the .ssh directory if it does not exist
         mkdir -p ~/.ssh
         
-        # Guardar la clave privada en el archivo spidey.pem
+        # Save the private key in the file spidey.pem
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/spidey.pem
         
-        # Establecer los permisos correctos para la clave privada
+        # Setting the correct permissions for the private key
         chmod 600 ~/.ssh/spidey.pem
 
-        # Conectarse al servidor EC2
+        # Connect to the EC2 server
         ssh -o StrictHostKeyChecking=no -i "~/.ssh/spidey.pem" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-          # Verificar si el directorio de la aplicación existe, si no, clonar el repositorio
+          # Check if the application directory exists, if not, clone the repository.
           if [ ! -d "/home/ec2-user/mi-aplicacion" ]; then
-            echo "Clonando repositorio..."
+            echo "Cloning repository..."
             git clone git@github.com:Alejandro2914/AWS-Spiderman.git /home/ec2-user/mi-aplicacion
           fi
 
-          # Cambiar al directorio de la aplicación
+          # Change to the application directory
           cd /home/ec2-user/mi-aplicacion
 
-          # Obtener los últimos cambios del repositorio
+          # Get the latest changes from the repository
           git pull origin main
 
-          # Instalar las dependencias de la aplicación
+          # Install application dependencies
           npm install
 
-          # Instalar PM2 si no está instalado
+          # Install PM2 if not already installed
           if ! command -v pm2 &> /dev/null; then
             npm install -g pm2
           fi
 
-          # Reiniciar la aplicación usando PM2
+          # Restart the application using PM2
           pm2 restart all || pm2 start npm --name "mi-aplicacion" -- start
         EOF
 
