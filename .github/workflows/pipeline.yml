@@ -1,38 +1,53 @@
-name: Deploy to EC2
+name: Deploy to AWS EC2
 
 on:
   push:
     branches:
-      - main  # Ajusta esto si usas una rama diferente
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2  # Este paso obtiene tu código fuente desde el repositorio
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
+    - name: Set up SSH key for EC2
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        node-version: '16'  # Especifica la versión de Node.js que necesites
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Debes almacenar la clave privada SSH en los secretos de GitHub
 
-    - name: Install dependencies
+    - name: Deploy to EC2
       run: |
-        npm install  # Instala las dependencias de tu aplicación
+        ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          # Verificar si el directorio de la aplicación existe, si no, clonar el repositorio
+          if [ ! -d "/home/ec2-user/mi-aplicacion" ]; then
+            echo "Clonando repositorio..."
+            git clone https://github.com/tu_usuario/tu_repositorio.git /home/ec2-user/mi-aplicacion
+          fi
 
-    - name: Set up SSH and deploy to EC2
-      run: |
-        # Guardar la clave privada en un archivo temporal
-        echo "${{ secrets.EC2_SSH_KEY }}" > private-key.pem
-        chmod 600 private-key.pem  # Asegura que la clave tenga los permisos correctos
-        
-        # Conectarse a EC2 y realizar el despliegue
-        ssh -o StrictHostKeyChecking=no -i private-key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-          cd /home/ec2-user/mi-aplicacion  # Cambia a la carpeta de tu app en EC2
-          git pull origin main  # Hace pull de la rama principal
-          npm install  # Instala las dependencias de la app
-          npm run build  # Ejecuta el build si es necesario
-          pm2 restart all  # Reinicia la app si usas pm2 para manejar el proceso
+          # Cambiar al directorio de la aplicación
+          cd /home/ec2-user/mi-aplicacion
+
+          # Obtener los últimos cambios
+          git pull origin main
+
+          # Instalar dependencias si no están instaladas
+          if [ ! -f "package.json" ]; then
+            echo "package.json no encontrado. Abortando..."
+            exit 1
+          fi
+
+          npm install
+
+          # Instalar PM2 si no está instalado
+          if ! command -v pm2 &> /dev/null; then
+            echo "PM2 no encontrado, instalando..."
+            npm install -g pm2
+          fi
+
+          # Ejecutar la aplicación
+          pm2 restart all || pm2 start npm --name "mi-aplicacion" -- start
         EOF
+
