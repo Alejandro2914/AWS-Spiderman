@@ -16,12 +16,42 @@ jobs:
     - name: Set up SSH key for EC2
       uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Debes almacenar la clave privada SSH en los secretos de GitHub
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Usamos el secreto con la clave privada cargada
 
     - name: Deploy to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i "C:/Users/AlEgA/.ssh" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+        # Crear el directorio .ssh si no existe
+        mkdir -p ~/.ssh
+        
+        # Guardar la clave privada en el archivo spidey.pem
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/spidey.pem
+        
+        # Establecer los permisos correctos para la clave privada
+        chmod 600 ~/.ssh/spidey.pem
+
+        # Conectarse al servidor EC2
+        ssh -o StrictHostKeyChecking=no -i "~/.ssh/spidey.pem" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
           # Verificar si el directorio de la aplicación existe, si no, clonar el repositorio
           if [ ! -d "/home/ec2-user/mi-aplicacion" ]; then
             echo "Clonando repositorio..."
-            git clone 
+            git clone git@github.com:Alejandro2914/AWS-Spiderman.git /home/ec2-user/mi-aplicacion
+          fi
+
+          # Cambiar al directorio de la aplicación
+          cd /home/ec2-user/mi-aplicacion
+
+          # Obtener los últimos cambios del repositorio
+          git pull origin main
+
+          # Instalar las dependencias de la aplicación
+          npm install
+
+          # Instalar PM2 si no está instalado
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+
+          # Reiniciar la aplicación usando PM2
+          pm2 restart all || pm2 start npm --name "mi-aplicacion" -- start
+        EOF
+
