@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = 8080;  // Cambia a 8080 si tienes problemas con el puerto 80
+const PORT = 3000;  // Cambia a 8080 si tienes problemas con el puerto 80
 
 // Servir archivos estáticos desde la carpeta "public"
 app.use(express.static('public'));
