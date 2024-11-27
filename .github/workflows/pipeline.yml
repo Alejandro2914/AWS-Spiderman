@@ -1,30 +1,42 @@
 name: Deploy to EC2
 
+
+
 on:
   push:
     branches:
-      - main  # Despliega solo cuando se hace push a main
+      - main  # Cambia esto si estás usando una rama diferente
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v3
+    - name: Check out the repository
+      uses: actions/checkout@v2  # Este paso obtiene el código de tu repositorio
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H <IP_DE_TU_INSTANCIA> >> ~/.ssh/known_hosts
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'  # Define la versión de Node.js que necesitas
 
-      - name: Deploy application to EC2
-        run: |
-          ssh ec2-user@54.164.144.74 << 'EOF'
-            cd /var/www/mi-aplicacion || exit
-            git pull origin main
-            npm install
-            pm2 restart all || pm2 start index.js --name "mi-aplicacion"
-          EOF
+    - name: Install dependencies
+      run: |
+        npm install  # Instala las dependencias de tu aplicación
+
+    - name: Run tests
+      run: |
+        npm test  # Aquí puedes ejecutar tus pruebas si las tienes configuradas
+
+    - name: Deploy to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+          cd /home/ec2-user/mi-aplicacion
+          git pull origin main
+          npm install
+          npm run build
+          pm2 restart all  # Si usas pm2 para manejar tu app
+        EOF
+      env:
+        EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        EC2_PUBLIC_IP: ${{ secrets.EC2_PUBLIC_IP }}
