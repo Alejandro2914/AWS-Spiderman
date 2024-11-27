@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = 1005;
+const PORT = 3000;
 
 // Use static files in "/public"
 app.use(express.static('public'));
