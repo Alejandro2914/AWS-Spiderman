@@ -20,11 +20,11 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i "C:\Users\AlEgA\Downloads\spidey.pem" ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
           # Verificar si el directorio de la aplicación existe, si no, clonar el repositorio
           if [ ! -d "/home/ec2-user/mi-aplicacion" ]; then
             echo "Clonando repositorio..."
-            git clone https://github.com/tu_usuario/tu_repositorio.git /home/ec2-user/mi-aplicacion
+            git clone git@github.com:Alejandro2914/AWS-Spiderman.git /home/ec2-user/mi-aplicacion
           fi
 
           # Cambiar al directorio de la aplicación
